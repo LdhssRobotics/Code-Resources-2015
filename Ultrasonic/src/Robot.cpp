@@ -2,7 +2,7 @@
 
 class Robot : public SampleRobot {
 
-	Ultrasonic Sonic;
+	Ultrasonic Sonic; ///Define the ultrasonic class
 
 	// update every 0.005 seconds/5 milliseconds.
 	double kUpdatePeriod = 0.005;
