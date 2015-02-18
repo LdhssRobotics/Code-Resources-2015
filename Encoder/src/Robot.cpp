@@ -29,7 +29,8 @@ public:
 		{
 			if (IsEnabled())
 			{
-				SmartDashboard::PutNumber("Motor Count", double ((encoder.Get()/71.164)/7));
+				SmartDashboard::PutNumber
+				("Motor Count", double ((encoder.Get()/71.164)/7));
 				///Divides encoder.get by gear ratio of 71.164, then divide result by encoder ratio of 7:1. It will output the # of motor rotations.
 
 				/*
