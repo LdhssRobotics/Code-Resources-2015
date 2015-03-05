@@ -26,3 +26,9 @@
 *.exe
 *.out
 *.app
+
+.settings/
+
+# Don't save top level .project file for this project,
+# since we have sub-projects.
+.project
