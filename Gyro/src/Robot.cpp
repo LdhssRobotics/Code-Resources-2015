@@ -1,42 +1,33 @@
 #include "WPILib.h"
 
-/**
- * This sample program shows how to control a motor using a joystick. In the operator
- * control part of the program, the joystick is read and the value is written to the motor.
- *
- * Joystick analog values range from -1 to 1 and speed controller inputs as range from
- * -1 to 1 making it easy to work together. The program also delays a short time in the loop
- * to allow other threads to run. This is generally a good idea, especially since the joystick
- * values are only transmitted from the Driver Station once every 20ms.
- */
 class Robot : public SampleRobot {
 	Joystick m_stick;
+	Gyro m_gyro;
+	RobotDrive m_drive;
 
-	// The motor to control with the Joystick.
-	// This uses a Talon speed controller; use the Victor or Jaguar classes for
-	//   other speed controllers.
-	Talon m_motor;
-
-	// update every 0.005 seconds/5 milliseconds.
-	double kUpdatePeriod = 0.005;
+	const uint32_t kFrontRightCh = 0; ///< Channel number for front right motor
+	const uint32_t kFrontLeftCh = 2; ///< Channel number for front left motor
+	const uint32_t kBackLeftCh = 3; ///< Channel number for back left motor
+	const uint32_t kBackRightCh = 1; ///< Channel number for back right motor
+	const double kUpdatePeriod = 0.005;
 
 public:
 	Robot() :
-			m_stick(0), // Initialize Joystick on port 0.
-			m_motor(0) // Initialize the Talon on channel 0.
+			m_stick(0), ///< Initialize Joystick on port 0.
+			m_gyro(0), ///< Initialize the Gyro on channel TODO: set channel.
+			m_drive(kFrontLeftCh, kBackLeftCh, kFrontRightCh, kBackRightCh) ///< Initialize RobotDrive to wheel ports.
 	{
 	}
 
 	/**
-	 * Runs the motor from the output of a Joystick.
+	 * Prints Gyro readings as user controls robot's rotation.
 	 */
 	void OperatorControl() {
 		while (IsOperatorControl() && IsEnabled()) {
-			// Set the motor controller's output.
-			// This takes a number from -1 (100% speed in reverse) to +1 (100% speed forwards).
-			m_motor.Set(m_stick.GetY());
+			m_drive.MecanumDrive_Polar(0, 0, 0.25 * m_stick.GetAxis(4)); ///< Robot rotates using Joystick input.
 
-			Wait(kUpdatePeriod); // Wait 5ms for the next update.
+			SmartDashboard::PutNumber("Current Angle: ", m_gyro.GetAngle()) ///< Gyro readings are printed to the SmartDashboard.
+			Wait(kUpdatePeriod); ///< Wait 5ms for the next update.
 		}
 	}
 };
