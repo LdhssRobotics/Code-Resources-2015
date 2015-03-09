@@ -1,22 +1,34 @@
 #include "WPILib.h"
 
 class Robot : public SampleRobot {
-	//Use a joystick to control the motor
 	Joystick m_stick;
-	// This uses a Talon speed controller
-	//(It may be a victor on the robot, if so change talon code to victor code)
-	Talon m_motor;
-	//Define the encoder
-	Encoder encoder;
+	Encoder m_encoder;
+	RobotDrive m_drive;
+	Ultrasonic m_ultra;
 
-	// update every 0.005 seconds/5 milliseconds.
-	double kUpdatePeriod = 0.005;
+	double m_distancePerPulse = 0.0;
 
+	double m_accel = 0.0;
+	double m_speed = 0.0;
+	uint32_t m_initialCount = 0;
+	uint32_t m_countDelta = 0;
+	double m_initialPosition = 0.0;
+	double m_positionDelta = 0.0;
+
+	const uint32_t kFrontRightCh = 0; ///< Channel number for front right motor
+	const uint32_t kFrontLeftCh = 2; ///< Channel number for front left motor
+	const uint32_t kBackLeftCh = 3; ///< Channel number for back left motor
+	const uint32_t kBackRightCh = 1; ///< Channel number for back right motor
+
+	const double k_distance = 3.0;
+	const double k_jerk = 0.0;
+	const double k_updatePeriod = 0.005;
 public:
 	Robot() :
 			m_stick(0), // Initialize Joystick on port 0.
-			m_motor(0), // Initialize the Talon on channel 0.
-			encoder(4, 5, true)
+			m_encoder(4, 5, true),
+			m_drive(kFrontLeftCh, kBackLeftCh, kFrontRightCh, kBackRightCh), ///< Initialize RobotDrive to wheel ports.
+			m_ultra(1, 2) //get the channels used
 	{
 	}
 
@@ -24,36 +36,52 @@ public:
 	 * Runs the motor from the output of a Joystick.
 	 */
 	void OperatorControl() {
-
-		while (IsOperatorControl())
+		while(IsOperatorControl())
 		{
-			if (IsEnabled())
-			{
-				SmartDashboard::PutNumber
-				("Motor Count", double ((encoder.Get()/71.164)/7));
-				///Divides encoder.get by gear ratio of 71.164, then divide result by encoder ratio of 7:1. It will output the # of motor rotations.
+			if (IsEnabled()) {
+				if (m_speed < 1) {
+					SmartDashboard::PutString("Robot accelerating", "");
+					SmartDashboard::PutNumber("Speed", m_speed);
 
-				/*
-				//If you want to have the count reset when the motor stops, add the following code:
-				if (encoder.GetStopped() == "true")
-				{
-					encoder.Reset();
+					m_accel += k_jerk;
+					m_speed += m_accel;
+				} else if (m_speed == 1) {
+					if (m_initialCount == 0) 		m_initialCount = m_encoder.Get();
+					if (m_initialPosition == 0.0)	m_initialPosition = m_ultra.GetRangeMM();
+
+					if (m_positionDelta <= k_distance) {
+						m_countDelta = m_encoder.Get() - m_initialCount;
+						m_positionDelta = 1000 * (m_initialPosition - m_ultra.GetRangeMM());
+
+						SmartDashboard::PutString("Robot at full speed", "Testing in progress");
+						SmartDashboard::PutNumber("Change in Encoder Count", m_countDelta);
+						SmartDashboard::PutNumber("Distance Travelled", m_positionDelta);
+						SmartDashboard::PutNumber("Total Distance to Travel", k_distance);
+
+					} else {
+						if (m_distancePerPulse == 0.0)	m_distancePerPulse = m_positionDelta / m_countDelta;
+
+						SmartDashboard::PutString("Full distance travelled", "Testing completed");
+						SmartDashboard::PutNumber("Speed", m_speed);
+						SmartDashboard::PutNumber("Distance travelled per encoder pulse", m_distancePerPulse);
+
+						Decelerate();
+					}
 				}
-				*/
-
-				// Set the motor controller's output.
-				// This takes a number from -1 (100% speed in reverse) to +1 (100% speed forwards).
-				m_motor.Set(m_stick.GetY());
-
-				Wait(kUpdatePeriod); // Wait 5ms for the next update.
+			} else {
+				Decelerate();
 			}
-			else //Do when disabled
-			{
-				//Resets the encoder count when robot is disabled
-				if (encoder.Get() != 0){
-					encoder.Reset();
-				}
-			}
+
+			m_drive.MecanumDrive_Polar(m_speed, 0, 0);
+		}
+	}
+
+	void Decelerate() {
+		if (m_speed > 0) {
+			m_accel -= k_jerk;
+			m_speed -= m_accel;
+		} else if (m_speed < 0) {
+			m_speed = 0;
 		}
 	}
 };
