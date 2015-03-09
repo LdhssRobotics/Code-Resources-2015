@@ -1,6 +1,6 @@
 #include "WPILib.h"
 
-class Robot : public SampleRobot {
+class Robot : public SampleRobot { // TODO: add comments
 	Joystick m_stick;
 	Encoder m_encoder;
 	RobotDrive m_drive;
@@ -25,10 +25,10 @@ class Robot : public SampleRobot {
 	const double k_updatePeriod = 0.005;
 public:
 	Robot() :
-			m_stick(0), // Initialize Joystick on port 0.
-			m_encoder(4, 5, true),
+			m_stick(0), // TODO: get channels
+			m_encoder(4, 5, true), // TODO: get channels
 			m_drive(kFrontLeftCh, kBackLeftCh, kFrontRightCh, kBackRightCh), ///< Initialize RobotDrive to wheel ports.
-			m_ultra(1, 2) //get the channels used
+			m_ultra(1, 2) // TODO: get channels
 	{
 	}
 
