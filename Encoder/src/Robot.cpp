@@ -72,7 +72,7 @@ public:
 				Decelerate();
 			}
 
-			m_drive.MecanumDrive_Polar(m_speed, 0, 0);
+			m_drive.MecanumDrive_Cartesian(0.0, m_speed, 0.0, 0.0);
 		}
 	}
 
